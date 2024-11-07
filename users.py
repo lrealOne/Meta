@@ -8,7 +8,7 @@ load_dotenv()
 # DADOS DO USUARIO
 class User:
     def __init__(self, nome, idade, cargo, empresa, renda, meta, economiaMensal, poupanca):
-        self.nome = nome
+        self.nome = nome.capitalize()
         self.idade = idade
         self.cargo = cargo
         self.empresa = empresa

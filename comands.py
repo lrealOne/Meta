@@ -1,7 +1,18 @@
 from users import *
 
-# FUNÇÃO PARA ADICIONAR INFORMAÇÕES NO MySQL (C)
-def add(user: User):
+
+
+def checkUser(userIn):
+    users = usersList()
+    if userIn in users.name:
+        return userIn
+    else:
+        print("Usuario não encontrado")
+        
+
+
+# FUNÇÕES PARA ADICIONAR, EXCLUIR, ATUALIZAR E VISUALIZAR INFORMAÇÕES NO MySQL 
+def adicionar(user: User):
     comando = f"""
     INSERT INTO meta (nome, idade, cargo, empresa, salario, meta, economiaMensal, poupanca, mesesRestantes)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
@@ -37,7 +48,7 @@ def add(user: User):
 
 
 
-def delete():
+def deletar():
     user = input("Excluir usuário: ")
     comando = """
     DELETE FROM meta WHERE nome = %s;
@@ -62,22 +73,96 @@ def delete():
         print(f"Erro: {erro}")
 
     
+
+def visualizar():
+    print("O que deseja vizualizar?")
+    escolha = input("1 - VISUALIZAR TUDO\n2 - VISUALIZAR APENAS 1 USUARIO\n3 - CANCELAR\n")
+    try:
+        if escolha == "1":
+            users = usersList()
+            for user in users:
+                print(user, "\n")
+        elif escolha == "2": 
+            users = usersList()
+            nomes = []
+            for user in users:
+                nomes.append(user.nome)
+            userEscolhido = input("USUARIO: ").capitalize()
+            if userEscolhido in nomes:
+                for user in users:
+                    if user.nome == userEscolhido:
+                        print(user)
+            else:
+                print(f"{userEscolhido} não foi encontrado.")
+        elif escolha == "3":
+            print("Cancelando..")                 
+            return            
+    except:
+        print("Digite um valor válido.")
+    
+
+def atualizar():
+    userUpdate = input("Qual usuário você deseja alterar?").capitalize()
+    while not checkUser(userUpdate):
+        print("Usuario não encontrado.")
+        userUpdate = input("Qual usuário você deseja alterar?")
+
+    campos = ["nome", "idade", "cargo", "empresa", "salario", "meta", "economiaMensal", "poupanca"]
+
+    print("Escolha o a informação que deseja alterar?")
+    escolha = input("\n1. Idade\n2. Cargo\n3. Empresa\n4. Salario\n5. Renda\n6. Saldo Mensal\n7. Poupança")
+    while not escolha in ['1', '2', '3', '4', '5', '6', '7']:
+        print("Campo não encontrado..")
+        escolha = input("\n1. Idade\n2. Cargo\n3. Empresa\n4. Salario\n5. Renda\n 6. Saldo Mensal\n 7. Poupança")
+
+    i = int(escolha)
+    campo = campos[i]
+
+    comando = """
+            UPDATE meta
+            SET {campo} = %s
+            WHERE nome = %s;
+        """
+    try:
+        with mysql.connector.connect(
+            host= os.environ.get("MYSQL_HOST"),
+            user= os.environ.get("MYSQL_USER"),
+            passwd= os.environ.get("MYSQL_PASS"),
+            database= os.environ.get("MYSQL_DB")
+        ) as connection:
+            with connection.cursor() as cursor:
+
+#                dado = 
+                cursor.execute(comando, campo)
+
+                connection.commit()
+
+                print("Adicionado a Meta")
+
+    except mysql.connector.Error as erro:
+        print(f"Erro: {erro}")
+
+
 # SOLICITANDO NECESSIDADE DO USUÁRIO
 def escolha():
     print("Seja bem vindo ao Meta!!\nO que deseja?\n")
     comando = input(" 'I' para INSERIR USUÁRIO\n 'D' para DELETAR USUÁRIO\n 'A' para ATUALIZAR INFORMAÇÕES\n 'V' para VISUALIZAR INFORMAÇÔES\nR:")
 
-    while not comando in ["i", "d", "a", "l"]:
+    while not comando in ["i", "d", "a", "v"]:
         print()
         comando = input("Comando invalido. Digite uma das opções a seguir.\n" + " 'I' para INSERIR USUÁRIO\n 'D' para DELETAR USUÁRIO\n 'A' para ATUALIZAR INFORMAÇÕES\n 'V' para VISUALIZAR INFORMAÇÔES\nR:")
     
     comando = comando.lower()
-    if comando == "a":
+    if comando == "i":
         user = userInfoRequest()
-        add(user)
+        adicionar(user)
     elif comando == "d":
-        delete()
-    
+        deletar()
+    elif comando == "v":
+        visualizar()
+    else:
+        atualizar()
         
-    
+        
+        
 
