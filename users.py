@@ -29,13 +29,45 @@ class User:
             f"Poupança: R${self.poupanca:.2f},\n"
             f"Meses Restantes: {self.mesesRestantes}")
 
-#Lista de usuarios
-users = []
+
+# Lista de Usuarios
+def usersList():
+    users = []
+    try:
+        with mysql.connector.connect(
+            host=os.environ.get("MYSQL_HOST"),
+            user=os.environ.get("MYSQL_USER"),
+            passwd=os.environ.get("MYSQL_PASS"),
+            database=os.environ.get("MYSQL_DB")
+        ) as connection:
+            with connection.cursor() as cursor:
+                comando = "SELECT nome, idade, cargo, empresa, salario, meta, economiaMensal, poupanca FROM meta"
+                cursor.execute(comando)
+
+                resultados = cursor.fetchall()
+
+                for row in resultados:
+                    nome, idade, cargo, empresa, salario, meta, economiaMensal, poupanca = row
+                    user = User(nome, idade, cargo, empresa, salario, meta, economiaMensal, poupanca)
+                    users.append(user)
+    except mysql.connector.Error as erro:
+        print(f"Erro: {erro}")
+
+    return users
+
+
+users = usersList()
+# for user in users:
+#     print(user, "\n")
+
+
 
 #Adicionando usuario em uma lista.
 def userInfo(users, user):
     users.append(user)
     print(f"{user.nome} listado.")
+
+
 
 #Validar STR
 def validarSTR(string):
@@ -43,6 +75,8 @@ def validarSTR(string):
         return True
     else:
         return False
+
+
 
 #Validar NUM
 def validarNUM(number):
@@ -55,12 +89,13 @@ def validarNUM(number):
     else:
         try:
             number = int(number)
-            return number > 0
+            return number
         except ValueError:
             print("Digite o numero corretamente.")
     
 
-#solicitando dados do usuario.
+
+# Criar usuario
 def userInfoRequest():
     # nome
     nome = input("Nome: \nR: ")  
@@ -74,73 +109,63 @@ def userInfoRequest():
         print(" Por favor, insira uma idade válida.")
         idade = input("Idade: \n")
     
+
     #empregado = True or False
     empregado = input("Está trabalhando atualmente? 's' para SIM ou 'n' para NÃO\nR: ")
-
-    while not validarSTR(empregado):
-        print("Por favor, insira caracteres válidos.")
+    while not validarSTR(nome):
+        print("Por favor, insira uma resposta válida.")
         empregado = input("Está trabalhando atualmente? 's' para SIM ou 'n' para NÃO\nR: ")
-        if empregado.lower() == "s":  
-            cargo = input("Qual seu cargo?  \nR: ")
-            empresa = input("Empresa:\nR: ")
-        else:
-            cargo = ""
-            empresa = ""
-    
+        
+    if empregado.lower() == "s":  
+        cargo = input("Qual seu cargo?  \nR: ")
+        empresa = input("Empresa:\nR: ")
+    else:
+        cargo = "Não possui"
+        empresa = ""
 
+    # Informações sobre renda
     renda = input("Qual a sua renda?\nR: ")
+
+    # validação renda.
+    while not validarNUM(renda):
+        print(" Por favor, insira um valor válido.")
+        renda = input("Qual a sua renda?\nR: ")
+
+
+    # Informações sobre o objetivo (meta).
     meta = input("Quanto pretende juntar?\nR: ")
+
+    # validação meta.
+    while not validarNUM(meta):
+        print(" Por favor, insira um valor válido.")
+        meta = input("Quanto pretende juntar?\nR: ")
+
+
+    # Informações sobre a economia mensal do usuário.
     economiaMensal = input("Quanto costuma guardar por mês?\nR: ")
+
+    # validação economia mensal.
+    while not validarNUM(economiaMensal):
+        print(" Por favor, insira um valor válido.")
+        economiaMensal = input("Quanto costuma guardar por mês?\nR: ")
+
+
+    # Informação sobre quanto o usuário já possui.
     poupanca = input("Quanto você já possui? \nR: ")
 
+    # validação poupanca.
+    if poupanca != 0:
+        while not validarNUM(poupanca):
+            print(" Por favor, insira um valor válido.")
+            poupanca = input("Quanto você já possui? \nR: ")
+    
+
+    # Tentavida de criação de usuario, utilizando try catch para captar possiveis erros.
     try:
-        renda = float(renda)
-        meta = float(meta)
-        economiaMensal = float(economiaMensal)
-        poupanca = float(poupanca)
         user = User(nome, idade, cargo, empresa, renda, meta, economiaMensal, poupanca)
 
         userInfo(users, user)
         return user
     except ValueError:
-        print("Erro: Por favor, insira valores validos em campos númericos.")
         return None 
     
-#########################################################################
-
-# FUNÇÃO PARA ADICIONAR INFORMAÇÕES NO MySQL (C)
-def add(user: User):
-    comando = f"""
-    INSERT INTO meta (nome, idade, cargo, empresa, salario, meta, economiaMensal, poupanca, mesesRestantes)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
-    """
-
-    try:
-        with mysql.connector.connect(
-            host= os.environ.get("MYSQL_HOST"),
-            user= os.environ.get("MYSQL_USER"),
-            passwd= os.environ.get("MYSQL_PASS"),
-            database= os.environ.get("MYSQL_DB")
-        ) as connection:
-            with connection.cursor() as cursor:
-
-                dados = (user.nome,
-                        user.idade,
-                        user.cargo,
-                        user.empresa,
-                        user.renda,
-                        user.meta,
-                        user.economiaMensal,
-                        user.poupanca,
-                        user.mesesRestantes)
-                
-                cursor.execute(comando, dados)
-
-                connection.commit()
-
-                print("Adicionado a Meta")
-
-    except mysql.connector.Error as erro:
-        print(f"Erro: {erro}")
-
-#########################################################################

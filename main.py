@@ -7,21 +7,12 @@ Esse codigo ainda será atualizado, está em teste.
 
 '''
 import mysql.connector
-from zinfo import userInfoRequest, User, add, userInfo, users
+from users import *
+from comands import *
  # type: ignore
 import os
 
-
-
-while True:
-    os.system("cls")
-    user = userInfoRequest()
-    parar = input("Deseja adicionar mais algum usuário?\n 's' para SIM ou 'n' para NÃO" )
-    if parar.lower() == "s":
-        print(users)
-        continue
-    else:
-        break
+escolha()
 
 
 
