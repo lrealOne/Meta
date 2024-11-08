@@ -4,11 +4,11 @@ from users import *
 
 def checkUser(userIn):
     users = usersList()
-    if userIn in users.name:
-        return userIn
+    for user in users:
+        if user.nome == userIn:
+            return True
     else:
         print("Usuario não encontrado")
-        
 
 
 # FUNÇÕES PARA ADICIONAR, EXCLUIR, ATUALIZAR E VISUALIZAR INFORMAÇÕES NO MySQL 
@@ -29,7 +29,7 @@ def adicionar(user: User):
 
                 dados = (user.nome,
                         user.idade,
-                        user.cargo,
+                        user.cargo,     
                         user.empresa,
                         user.renda,
                         user.meta,
@@ -101,47 +101,57 @@ def visualizar():
         print("Digite um valor válido.")
     
 
+
 def atualizar():
-    userUpdate = input("Qual usuário você deseja alterar?").capitalize()
+    userUpdate = input("Qual usuário você deseja alterar? ").capitalize()
     while not checkUser(userUpdate):
-        print("Usuario não encontrado.")
-        userUpdate = input("Qual usuário você deseja alterar?")
+        print("Usuário não encontrado.")
+        userUpdate = input("Qual usuário você deseja alterar? ").capitalize()
 
     campos = ["nome", "idade", "cargo", "empresa", "salario", "meta", "economiaMensal", "poupanca"]
 
-    print("Escolha o a informação que deseja alterar?")
-    escolha = input("\n1. Idade\n2. Cargo\n3. Empresa\n4. Salario\n5. Renda\n6. Saldo Mensal\n7. Poupança")
-    while not escolha in ['1', '2', '3', '4', '5', '6', '7']:
-        print("Campo não encontrado..")
-        escolha = input("\n1. Idade\n2. Cargo\n3. Empresa\n4. Salario\n5. Renda\n 6. Saldo Mensal\n 7. Poupança")
+    print("Escolha a informação que deseja alterar?")
+    escolha = input("\n1. Idade\n2. Cargo\n3. Empresa\n4. Salário\n5. Meta\n6. Economia Mensal\n7. Poupança\n")
+    while escolha not in ['1', '2', '3', '4', '5', '6', '7']:
+        print("Campo não encontrado.")
+        escolha = input("\n1. Idade\n2. Cargo\n3. Empresa\n4. Salário\n5. Meta\n6. Economia Mensal\n7. Poupança\n")
 
-    i = int(escolha)
+    i = int(escolha) 
     campo = campos[i]
 
-    comando = """
-            UPDATE meta
-            SET {campo} = %s
-            WHERE nome = %s;
-        """
+    if i in [1, 4, 5, 6, 7]:
+        alter = input(f"Do campo {campo}, qual será o novo valor?\nR: ")
+        while not validarNUM(alter):
+            print("Insira um valor válido.")
+            alter = input(f"Do campo {campo}, qual será o novo valor?\nR: ")
+        alter = float(alter)  
+    elif i in [2, 3]: 
+        alter = input(f"Do campo {campo}, qual será o novo valor?\nR: ")
+        while not validarSTR(alter):
+            print("Use apenas caracteres permitidos.")
+            alter = input(f"Do campo {campo}, qual será o novo valor?\nR: ")
+
+    # Formatação do comando SQL
+    comando = f"""
+        UPDATE meta
+        SET {campo} = %s
+        WHERE nome = %s;
+    """
     try:
         with mysql.connector.connect(
-            host= os.environ.get("MYSQL_HOST"),
-            user= os.environ.get("MYSQL_USER"),
-            passwd= os.environ.get("MYSQL_PASS"),
-            database= os.environ.get("MYSQL_DB")
+            host=os.environ.get("MYSQL_HOST"),
+            user=os.environ.get("MYSQL_USER"),
+            passwd=os.environ.get("MYSQL_PASS"),
+            database=os.environ.get("MYSQL_DB")
         ) as connection:
             with connection.cursor() as cursor:
-
-#                dado = 
-                cursor.execute(comando, campo)
+                cursor.execute(comando, (alter, userUpdate))
 
                 connection.commit()
-
-                print("Adicionado a Meta")
+                print(f"{campo} de {userUpdate} foi alterado.")
 
     except mysql.connector.Error as erro:
         print(f"Erro: {erro}")
-
 
 # SOLICITANDO NECESSIDADE DO USUÁRIO
 def escolha():

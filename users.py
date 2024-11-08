@@ -80,18 +80,21 @@ def validarSTR(string):
 
 #Validar NUM
 def validarNUM(number):
-    if len(number) > 2:
+    if int(number) != 0 or len(number) > 2:
         try:
             number = float(number)
             return number > 0
         except ValueError:
             print("Digite o numero corretamente.")
     else:
-        try:
-            number = int(number)
+        if int(number) != 0:
+            try:
+                number = int(number)
+                return number
+            except ValueError:
+                print("Digite o numero corretamente.")
+        else:
             return number
-        except ValueError:
-            print("Digite o numero corretamente.")
     
 
 
@@ -102,6 +105,7 @@ def userInfoRequest():
     while not validarSTR(nome):
         print("Por favor, insira um NOME VALIDO.")
         nome = input("Nome: \n")
+    
 
     #idade
     idade = input("Idade: \nR: ")
